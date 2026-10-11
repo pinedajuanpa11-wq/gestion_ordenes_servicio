@@ -1,0 +1,10 @@
+ANTES DE ENTREGAR
+
+1. Ejecuta el proyecto desde IntelliJ con Java 17.
+2. Captura la página principal en http://localhost:8080.
+3. Registra datos ficticios y captura clientes, equipos y órdenes.
+4. Captura GET http://localhost:8080/api/ordenes mostrando JSON.
+5. Ejecuta PATCH http://localhost:8080/api/ordenes/1/estado con body {"status":"CERRADA"} y captura la respuesta.
+6. Verifica en la interfaz que la orden esté CERRADA y el equipo REPARADO.
+7. Completa la columna Resultado real del informe con lo que efectivamente observes.
+8. Comprueba que el informe y el código describan exactamente la versión que entregas.

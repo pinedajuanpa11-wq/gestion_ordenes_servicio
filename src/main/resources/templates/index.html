@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestión de órdenes de servicio</title>
+<style>
+:root{--navy:#17365d;--blue:#2367a5;--pale:#eef5fb;--ink:#253247;--line:#d9e2ec}
+*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font-family:Arial,sans-serif}
+header{background:linear-gradient(120deg,#17365d,#2876b8);color:white;padding:28px max(20px,calc((100% - 1180px)/2))}
+header h1{margin:0 0 8px;font-size:27px}header p{margin:0;color:#e5effa}
+main{max-width:1180px;margin:24px auto;padding:0 18px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.stat,.panel{background:white;border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 3px 12px #19385b0b}
+.stat span{color:#64748b;font-size:13px}.stat strong{display:block;font-size:28px;color:var(--blue);margin-top:8px}
+.layout{display:grid;grid-template-columns:330px 1fr;gap:18px}.forms{display:grid;gap:14px;align-content:start}.panel h2{font-size:18px;margin:0 0 15px;color:var(--navy)}
+label{display:block;font-size:13px;font-weight:bold;margin:10px 0 5px}input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:7px;background:#fff}
+button{border:0;background:var(--blue);color:white;border-radius:7px;padding:10px 13px;font-weight:bold;cursor:pointer;margin-top:12px}button:hover{background:var(--navy)}
+.tablewrap{overflow:auto;margin-bottom:22px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}th{background:var(--pale);color:var(--navy)}tr:hover td{background:#fbfdff}.pill{background:#e8f2ff;color:#205c91;border-radius:20px;padding:4px 8px;white-space:nowrap}.muted{color:#64748b;font-size:12px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><h1>Gestión de órdenes de servicio</h1><p>Clientes · Equipos · Seguimiento de mantenimiento</p></header>
+<main>
+<div class="stats">
+<div class="stat"><span>Clientes registrados</span><strong th:text="${#lists.size(clients)}">0</strong></div>
+<div class="stat"><span>Equipos registrados</span><strong th:text="${#lists.size(equipment)}">0</strong></div>
+<div class="stat"><span>Órdenes de servicio</span><strong th:text="${#lists.size(orders)}">0</strong></div>
+</div>
+<div class="layout">
+<section class="forms">
+<div class="panel"><h2>Registrar cliente</h2>
+<form method="post" action="/clientes">
+<label>Nombre completo</label><input name="name" required maxlength="100" placeholder="Ej. Laura Gómez">
+<label>Correo electrónico</label><input type="email" name="email" required placeholder="laura@ejemplo.com">
+<label>Teléfono</label><input name="phone" maxlength="25" placeholder="300 000 0000">
+<button type="submit">Guardar cliente</button></form></div>
+<div class="panel"><h2>Registrar equipo</h2>
+<form method="post" action="/equipos">
+<label>Descripción del equipo</label><input name="description" required placeholder="Portátil, impresora...">
+<label>Número de serie</label><input name="serialNumber" required placeholder="EQ-001">
+<label>Cliente propietario</label><select name="clientId" required><option value="">Seleccione cliente</option><option th:each="c : ${clients}" th:value="${c.id}" th:text="${c.name + ' (#' + c.id + ')'}"></option></select>
+<button type="submit">Guardar equipo</button></form></div>
+<div class="panel"><h2>Crear orden</h2>
+<form method="post" action="/ordenes">
+<label>Descripción del servicio</label><input name="description" required maxlength="250" placeholder="Diagnóstico y mantenimiento">
+<label>Equipo</label><select name="equipmentId" required><option value="">Seleccione equipo</option><option th:each="e : ${equipment}" th:value="${e.id}" th:text="${e.description + ' — ' + e.serialNumber}"></option></select>
+<button type="submit">Crear orden</button></form></div>
+</section>
+<section class="panel">
+<h2>Órdenes de servicio</h2><div class="tablewrap"><table>
+<thead><tr><th>ID</th><th>Fecha</th><th>Cliente / equipo</th><th>Descripción</th><th>Estado</th><th>Acción</th></tr></thead>
+<tbody><tr th:each="o : ${orders}">
+<td th:text="${o.id}"></td><td th:text="${o.createdAt}"></td>
+<td><strong th:text="${o.equipment.client.name}"></strong><br><span class="muted" th:text="${o.equipment.description + ' · ' + o.equipment.serialNumber}"></span></td>
+<td th:text="${o.description}"></td><td><span class="pill" th:text="${o.status}"></span></td>
+<td><form th:if="${o.status != 'CERRADA'}" method="post" th:action="@{/ordenes/{id}/cerrar(id=${o.id})}"><button type="submit">Cerrar orden</button></form><span th:if="${o.status == 'CERRADA'}" class="muted">Finalizada</span></td>
+</tr><tr th:if="${#lists.isEmpty(orders)}"><td colspan="6">Aún no hay órdenes. Registra un cliente, luego un equipo y finalmente una orden.</td></tr></tbody>
+</table></div>
+<h2>Clientes registrados</h2><div class="tablewrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Teléfono</th></tr></thead>
+<tbody><tr th:each="c : ${clients}"><td th:text="${c.id}"></td><td th:text="${c.name}"></td><td th:text="${c.email}"></td><td th:text="${c.phone}"></td></tr>
+<tr th:if="${#lists.isEmpty(clients)}"><td colspan="4">No hay clientes registrados.</td></tr></tbody></table></div>
+<h2>Equipos registrados</h2><div class="tablewrap"><table><thead><tr><th>ID</th><th>Equipo / serie</th><th>Cliente</th><th>Estado</th></tr></thead>
+<tbody><tr th:each="e : ${equipment}"><td th:text="${e.id}"></td><td th:text="${e.description + ' / ' + e.serialNumber}"></td><td th:text="${e.client.name}"></td><td><span class="pill" th:text="${e.status}"></span></td></tr>
+<tr th:if="${#lists.isEmpty(equipment)}"><td colspan="4">No hay equipos registrados.</td></tr></tbody></table></div>
+<p class="muted">La interfaz usa tablas, formularios, estilos consistentes y una celda que agrupa cliente y equipo para facilitar la lectura.</p>
+</section></div>
+</main></body></html>
